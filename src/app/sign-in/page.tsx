@@ -25,6 +25,11 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
         </>
       }
     >
+      {params.verified === "1" && (
+        <div className="mb-4">
+          <FormMessage ok message="Your e-mail is verified. Sign in to continue." />
+        </div>
+      )}
       {params.error === "link" && (
         <div className="mb-4">
           <FormMessage message="That link is invalid or has expired. Sign in or request a new link." />

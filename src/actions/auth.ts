@@ -32,7 +32,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
 
   const next = safeNextPath(formData.get("next"), "/find");
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -50,17 +50,41 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
   });
 
   if (error) {
-    logError("signUp", error);
-    const message = /password/i.test(error.message)
-      ? "Choose a stronger password."
-      : error.status === 429
-        ? "Too many attempts. Please try again later."
-        : "We couldn't create your account. Please try again.";
-    return withValues({ ok: false, message }, formData);
+    logError("signUp", `${error.code ?? "unknown"} (${error.status ?? "?"}): ${error.message}`);
+    return withValues({ ok: false, message: signUpErrorMessage(error) }, formData);
   }
 
   await trackServer(EVENTS.signupCompleted, { props: { platform, region, marketing_opt_in } });
+  // With "Confirm email" off in Supabase the user is signed in right away.
+  if (data.session) redirect(next);
   redirect(`/sign-up/check-email?email=${encodeURIComponent(email)}`);
+}
+
+/**
+ * Maps Supabase Auth sign-up errors to a message the user can act on.
+ * Codes: https://supabase.com/docs/guides/auth/debugging/error-codes
+ */
+function signUpErrorMessage(error: { code?: string; status?: number; message: string }): string {
+  switch (error.code) {
+    case "weak_password":
+      return "Choose a stronger password.";
+    case "email_address_invalid":
+      return "That e-mail address can't be used. Try another one.";
+    case "user_already_exists":
+    case "email_exists":
+      return "An account with this e-mail already exists. Sign in instead.";
+    case "over_email_send_rate_limit":
+    case "over_request_rate_limit":
+      return "We're sending too many e-mails right now. Please try again in a few minutes.";
+    // Supabase's built-in SMTP only delivers to the project's own team members.
+    case "email_address_not_authorized":
+    case "signup_disabled":
+    case "email_provider_disabled":
+      return "Sign-ups are temporarily unavailable. Please try again later.";
+  }
+  if (error.status === 429) return "Too many attempts. Please try again later.";
+  if (/password/i.test(error.message)) return "Choose a stronger password.";
+  return "We couldn't create your account. Please try again.";
 }
 
 export async function signIn(_prev: ActionState, formData: FormData): Promise<ActionState> {

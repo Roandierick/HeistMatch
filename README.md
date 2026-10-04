@@ -49,6 +49,18 @@ The app builds and renders without Supabase configured (empty states everywhere)
    update public.profiles set role = 'admin' where username = 'YourUsername';
    ```
 
+### Sign-up not working?
+
+Run `npm run check:supabase` (locally against the same project, or with the Vercel env vars exported). It reports missing keys, disabled sign-ups and missing migrations. The server log line `[heistmatch:signUp]` shows the exact Supabase error code. The usual causes:
+
+- **No custom SMTP.** Supabase's built-in mailer only sends to members of your Supabase team and only a few e-mails per hour. Everyone else gets `email_address_not_authorized`. Configure SMTP (Resend works) under Authentication -> SMTP.
+- **Migrations not applied.** Without them there are no profiles, and the app can't work.
+- **Site URL still `http://localhost:3000`.** Verification links then point to localhost. Set the Site URL and Redirect URLs (step 4).
+
+### Local Supabase
+
+`npx supabase start` (needs Docker) runs Auth, Postgres and a mail catcher locally and applies the migrations. Put the printed URL and keys in `.env.local`, then open verification e-mails at http://127.0.0.1:54324.
+
 ### Vercel
 
 Set the variables from `.env.example`. Use `NEXT_PUBLIC_SITE_ENV=production` **only** on the production environment: every other environment is `noindex` (meta robots, `X-Robots-Tag` header and a blocking `robots.txt`).
@@ -62,6 +74,7 @@ Set the variables from `.env.example`. Use `NEXT_PUBLIC_SITE_ENV=production` **o
 | `npm run check` | Lint + typecheck + unit tests |
 | `npm run test` | Unit tests (validation, filters, moderation, TOC) |
 | `npm run test:db` | Applies all migrations to a throwaway local Postgres and runs the RLS/business-rule tests (needs Postgres binaries, run as a non-root user) |
+| `npm run check:supabase` | Checks the Supabase project in `.env.local`: keys, sign-up settings, migrations |
 | `npm run db:types` | Regenerate Supabase types from the linked project |
 
 ## Architecture
