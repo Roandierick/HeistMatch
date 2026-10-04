@@ -54,6 +54,15 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     return withValues({ ok: false, message: signUpErrorMessage(error) }, formData);
   }
 
+  // With e-mail enumeration protection on, Supabase answers a sign-up for an
+  // existing address with a placeholder user without identities and sends no e-mail.
+  if (data.user && data.user.identities?.length === 0) {
+    return withValues(
+      { ok: false, message: "An account with this e-mail already exists. Sign in, or reset your password if you forgot it." },
+      formData,
+    );
+  }
+
   await trackServer(EVENTS.signupCompleted, { props: { platform, region, marketing_opt_in } });
   // With "Confirm email" off in Supabase the user is signed in right away.
   if (data.session) redirect(next);
@@ -72,7 +81,7 @@ function signUpErrorMessage(error: { code?: string; status?: number; message: st
       return "That e-mail address can't be used. Try another one.";
     case "user_already_exists":
     case "email_exists":
-      return "An account with this e-mail already exists. Sign in instead.";
+      return "An account with this e-mail already exists. Sign in, or reset your password if you forgot it.";
     case "over_email_send_rate_limit":
     case "over_request_rate_limit":
       return "We're sending too many e-mails right now. Please try again in a few minutes.";
@@ -85,6 +94,25 @@ function signUpErrorMessage(error: { code?: string; status?: number; message: st
   if (error.status === 429) return "Too many attempts. Please try again later.";
   if (/password/i.test(error.message)) return "Choose a stronger password.";
   return "We couldn't create your account. Please try again.";
+}
+
+export async function resendVerification(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  if (!hasSupabaseEnv()) return NOT_CONFIGURED;
+  const parsed = forgotPasswordSchema.safeParse(formToObject(formData));
+  if (!parsed.success) return validationFailure(parsed.error);
+  if (!(await rateLimit("resend", 3, 3600))) return { ok: false, message: "Too many attempts. Please try again later." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: parsed.data.email,
+    options: { emailRedirectTo: absoluteUrl("/auth/callback?next=/find&verified=1") },
+  });
+  if (error) {
+    logError("resendVerification", `${error.code ?? "unknown"} (${error.status ?? "?"}): ${error.message}`);
+    return { ok: false, message: signUpErrorMessage(error) };
+  }
+  return { ok: true, message: "Sent. Check your inbox (and spam folder) in a minute." };
 }
 
 export async function signIn(_prev: ActionState, formData: FormData): Promise<ActionState> {
