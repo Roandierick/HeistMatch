@@ -8,7 +8,7 @@ export const newsletterSchema = z.object({
   email: z.string().trim().toLowerCase().pipe(z.email({ error: "Enter a valid e-mail address." }).max(254)),
   source: z.enum(NEWSLETTER_SOURCES).default("newsletter_home"),
   // Honeypot: real users never fill this hidden field.
-  company: z.string().max(0).optional().or(z.literal("")),
+  company: z.string().max(200).optional(),
 });
 
 export const reportSchema = z

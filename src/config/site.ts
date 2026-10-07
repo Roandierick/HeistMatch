@@ -1,10 +1,13 @@
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+
 export const siteConfig = {
   name: "HeistMatch",
   seoName: "GTA 6 Heist Finder",
   tagline: "Find your crew. Run the heist.",
   description:
     "HeistMatch is the GTA 6 Heist Finder. Find reliable GTA 6 players, match with the right crew and start your next heist.",
-  url: (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, ""),
+  url: siteUrl,
+  domain: new URL(siteUrl).hostname.replace(/^www\./, ""),
   /** Only "production" is indexable. Previews and local builds are noindex. */
   isProduction: process.env.NEXT_PUBLIC_SITE_ENV === "production",
   twitterHandle: process.env.NEXT_PUBLIC_TWITTER_HANDLE || undefined,
@@ -13,9 +16,9 @@ export const siteConfig = {
   consentVersion: "2026-10-v1",
   /** Legal entity details shown on legal pages. Fill in before launch. */
   legal: {
-    entity: process.env.NEXT_PUBLIC_LEGAL_ENTITY || "HeistMatch",
-    address: process.env.NEXT_PUBLIC_LEGAL_ADDRESS || "Belgium",
-    contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "privacy@heistmatch.com",
+    entity: process.env.NEXT_PUBLIC_LEGAL_ENTITY || "RD Future Solutions",
+    address: process.env.NEXT_PUBLIC_LEGAL_ADDRESS?.trim() || undefined,
+    contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@rdfuturesolutions",
     lastUpdated: "2026-10-04",
   },
   consentText: "Send me GTA 6 news, new heists, platform updates and HeistMatch emails.",

@@ -14,8 +14,8 @@ export function serverEnv() {
   return {
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
     resendApiKey: process.env.RESEND_API_KEY ?? "",
-    emailFrom: process.env.EMAIL_FROM ?? "HeistMatch <hello@heistmatch.com>",
+    emailFrom: process.env.EMAIL_FROM ?? "",
     cronSecret: process.env.CRON_SECRET ?? "",
-    rateLimitSalt: process.env.RATE_LIMIT_SALT ?? "heistmatch",
+    rateLimitSalt: process.env.RATE_LIMIT_SALT ?? "heistmatch-local-development",
   };
 }

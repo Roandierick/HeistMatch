@@ -6,7 +6,7 @@ import type { ActionState } from "@/lib/action-result";
 import { createAdminClient, hasServiceRole } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/env";
 import { rateLimit } from "@/lib/rate-limit";
-import { newsletterConfirmEmail, sendEmail } from "@/lib/email";
+import { newsletterConfirmEmail, newsletterEmailAvailable, sendEmail } from "@/lib/email";
 import { logError } from "@/lib/errors";
 import { trackServer } from "@/lib/analytics/server";
 import { EVENTS } from "@/lib/analytics/events";
@@ -25,7 +25,7 @@ export async function subscribeNewsletter(_prev: ActionState, formData: FormData
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Enter a valid e-mail address." };
   }
   if (parsed.data.company) return { ok: true, message: DONE_MESSAGE }; // honeypot hit
-  if (!hasSupabaseEnv() || !hasServiceRole()) {
+  if (!hasSupabaseEnv() || !hasServiceRole() || !newsletterEmailAvailable()) {
     return { ok: false, message: "Newsletter signups open soon. Please try again later." };
   }
   if (!(await rateLimit("newsletter", 5, 3600))) {
@@ -73,7 +73,8 @@ export async function subscribeNewsletter(_prev: ActionState, formData: FormData
       consent_version: siteConfig.consentVersion,
       source,
     });
-    await sendEmail({ to: email, ...newsletterConfirmEmail(row.confirm_token, row.unsubscribe_token) });
+    const sent = await sendEmail({ to: email, ...newsletterConfirmEmail(row.confirm_token, row.unsubscribe_token) });
+    if (!sent) return { ok: false, message: "We couldn't send the confirmation e-mail. Please try again later." };
     await trackServer(EVENTS.newsletterSubscribed, { userId: user?.id, props: { source } });
     return { ok: true, message: DONE_MESSAGE };
   } catch (error) {

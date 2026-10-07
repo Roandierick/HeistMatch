@@ -65,6 +65,8 @@ Run `npm run check:supabase` (locally against the same project, or with the Verc
 
 Set the variables from `.env.example`. Use `NEXT_PUBLIC_SITE_ENV=production` **only** on the production environment: every other environment is `noindex` (meta robots, `X-Robots-Tag` header and a blocking `robots.txt`).
 
+The canonical production origin is `https://heistmatch.net`. Newsletter forms remain unavailable until both `RESEND_API_KEY` and `EMAIL_FROM` are configured; no placeholder sender address is used.
+
 ## Scripts
 
 | Command | What it does |
@@ -125,7 +127,8 @@ supabase/
 
 ## Before launch
 
-- [ ] Fill in legal entity details (`NEXT_PUBLIC_LEGAL_*`) and have the legal pages reviewed.
+- [x] Configure the legal entity and temporary contact (`RD Future Solutions`, `info@rdfuturesolutions`).
+- [ ] Replace the temporary contact address when the final mailbox is available and have the legal pages reviewed.
 - [ ] Configure Supabase Auth SMTP + templates and Resend domain (SPF/DKIM/DMARC).
 - [ ] Verify and publish the starter articles.
 - [ ] Connect Google Search Console and submit `sitemap.xml`.

@@ -30,7 +30,7 @@ if (anon) ok("NEXT_PUBLIC_SUPABASE_ANON_KEY is set");
 else fail("NEXT_PUBLIC_SUPABASE_ANON_KEY is empty", "Supabase -> Project Settings -> API -> anon/publishable key");
 if (service) ok("SUPABASE_SERVICE_ROLE_KEY is set");
 else fail("SUPABASE_SERVICE_ROLE_KEY is empty", "Supabase -> Project Settings -> API -> service_role/secret key (server only)");
-if (!site) fail("NEXT_PUBLIC_SITE_URL is empty", "Set it to your public URL, e.g. https://heistmatch.com");
+if (!site) fail("NEXT_PUBLIC_SITE_URL is empty", "Set it to your public URL, e.g. https://heistmatch.net");
 else if (/localhost|127\.0\.0\.1/.test(site) && !/localhost|127\.0\.0\.1/.test(url))
   warn(`NEXT_PUBLIC_SITE_URL is ${site}; verification links will point there. Use your public URL in production.`);
 else ok(`NEXT_PUBLIC_SITE_URL = ${site}`);

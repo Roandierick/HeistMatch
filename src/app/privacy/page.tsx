@@ -13,7 +13,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy Policy" path="/privacy">
       <p>
-        This policy explains how {entity} ({address}) (&quot;HeistMatch&quot;, &quot;we&quot;) processes personal data when you use heistmatch.com. We are
+        This policy explains how {entity}{address ? ` (${address})` : ""} (&quot;HeistMatch&quot;, &quot;we&quot;) processes personal data when you use {siteConfig.domain}. We are
         the data controller. Questions or requests: <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
       </p>
 

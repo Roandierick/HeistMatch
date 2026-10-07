@@ -11,9 +11,9 @@ type Email = { to: string; subject: string; html: string; text: string; headers?
  */
 export async function sendEmail(email: Email): Promise<boolean> {
   const { resendApiKey, emailFrom } = serverEnv();
-  if (!resendApiKey) {
-    if (process.env.NODE_ENV !== "production") console.info(`[email:dev] to=${email.to} subject="${email.subject}"\n${email.text}`);
-    else logError("sendEmail", "RESEND_API_KEY missing; e-mail not sent");
+  if (!newsletterEmailAvailable()) {
+    if (process.env.NODE_ENV !== "production") console.info("[email:dev] Newsletter e-mail is disabled until RESEND_API_KEY and EMAIL_FROM are configured.");
+    else logError("sendEmail", "Newsletter e-mail is not configured");
     return false;
   }
   try {
@@ -22,12 +22,17 @@ export async function sendEmail(email: Email): Promise<boolean> {
       headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from: emailFrom, ...email }),
     });
-    if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
+    if (!res.ok) throw new Error(`Resend request failed with status ${res.status}`);
     return true;
   } catch (error) {
     logError("sendEmail", error);
     return false;
   }
+}
+
+export function newsletterEmailAvailable(): boolean {
+  const { resendApiKey, emailFrom } = serverEnv();
+  return Boolean(resendApiKey && emailFrom);
 }
 
 function layout(body: string, unsubscribeUrl?: string) {

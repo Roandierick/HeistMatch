@@ -71,8 +71,10 @@ describe("signUpSchema", () => {
 });
 
 describe("newsletterSchema", () => {
-  it("flags honeypot submissions", () => {
-    expect(newsletterSchema.safeParse({ email: "a@b.co", company: "bot inc" }).success).toBe(false);
+  it("accepts honeypot input so the action can silently discard bots", () => {
+    const bot = newsletterSchema.safeParse({ email: "a@b.co", company: "bot inc" });
+    expect(bot.success).toBe(true);
+    if (bot.success) expect(bot.data.company).toBe("bot inc");
     expect(newsletterSchema.safeParse({ email: "a@b.co", company: "" }).success).toBe(true);
   });
 });
